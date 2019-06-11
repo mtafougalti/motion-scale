@@ -2,6 +2,7 @@ package org.ms.preprocessing;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 
 import org.ms.preprocessing.model.MovingAverage;
 
@@ -14,7 +15,7 @@ import weka.filters.unsupervised.attribute.RenameAttribute;
 public class DataPreProcessor {
 	
 	private static final int SLOPE = 5;
-	private static final int PERIOD = 50;
+	private static final int PERIOD = 2;
 	
 	public static Instances calibrate(Instances dataSet) throws Exception {
 		RenameAttribute filter = new RenameAttribute();
@@ -29,16 +30,23 @@ public class DataPreProcessor {
 	
 	public static Instances removeLocalMean(Instances dataSet) {
 		Instances instances = dataSet;
+		List<Instance> list = Collections.list(instances.enumerateInstances());
 		MovingAverage movingAverage = new MovingAverage(PERIOD);
-		for (Instance instance : Collections.list(instances.enumerateInstances())) {
-			movingAverage.add(new BigDecimal(instance.value(1)));
-			double average = movingAverage.getAverage().doubleValue();
-			for (Attribute attribute : Collections.list(instance.enumerateAttributes())) {
-				if (attribute.index() == 1) {
-					instance.setValue(attribute, instance.value(1)-average);
+		for (int i = 0; i < list.size(); i += PERIOD) {
+			   List<Instance> subList = list.subList(i, Math.min(list.size(),i+10));
+			   for (Instance instance : subList) {
+					movingAverage.add(new BigDecimal(instance.value(1)));
+			   }
+			   double average = movingAverage.getAverage().doubleValue();
+			   for (Instance instance : subList) {
+					for (Attribute attribute : Collections.list(instance.enumerateAttributes())) {
+						if (attribute.index() == 1) {
+							instance.setValue(attribute, instance.value(1)-average);
+						}
+					}
 				}
 			}
-		}
+		
 		return instances;
 	}
 	
