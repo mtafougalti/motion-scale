@@ -1,4 +1,4 @@
-package org.ms.calibration.model;
+package org.ms.preprocessing.model;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
